@@ -1,0 +1,445 @@
+{% extends "base.html" %}
+
+{% block title %}Contraseñas - {{ config.APP_NAME }}{% endblock %}
+
+{% block content %}
+<div class="px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="sm:flex sm:items-center mb-8">
+        <div class="sm:flex-auto">
+            <h1 class="text-3xl font-bold text-gray-900 dark:text-white gradient-text">
+                <i class="fas fa-key mr-3 text-primary-500"></i>
+                Gestión de Contraseñas
+            </h1>
+            <p class="mt-2 text-lg text-gray-600 dark:text-gray-400">
+                Administra todas las contraseñas de tu {% if current_user.can_admin() %}organización{% else %}departamento{% endif %} de forma segura.
+            </p>
+        </div>
+        {% if current_user.can_edit() %}
+        <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+            <a href="{{ url_for('new_password') }}" class="btn-primary shadow-glow">
+                <i class="fas fa-plus mr-2"></i>
+                Nueva Contraseña
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="mb-8">
+        <div class="card shadow-xl animate-fade-in-up">
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-700 dark:to-gray-600">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                    <i class="fas fa-search mr-2 text-blue-500"></i>
+                    Filtros de Búsqueda
+                </h3>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    Encuentra rápidamente las contraseñas que necesitas
+                </p>
+            </div>
+            <div class="p-6">
+                <form method="GET" class="space-y-6">
+                    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                        <div>
+                            <label for="query" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                <i class="fas fa-search mr-1 text-primary-500"></i>
+                                Buscar
+                            </label>
+                            <input type="text" name="query" id="query" value="{{ request.args.get('query', '') }}" placeholder="Nombre, usuario, notas..." class="form-input">
+                        </div>
+
+                        {% if current_user.can_admin() %}
+                        <div>
+                            <label for="department_id" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                <i class="fas fa-building mr-1 text-primary-500"></i>
+                                Departamento
+                            </label>
+                            <select name="department_id" id="department_id" class="form-input">
+                                {% for value, label in form.department_id.choices %}
+                                <option value="{{ value }}" {% if request.args.get('department_id') == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        {% endif %}
+
+                        <div>
+                            <label for="tags" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                <i class="fas fa-tags mr-1 text-primary-500"></i>
+                                Etiquetas
+                            </label>
+                            <input type="text" name="tags" id="tags" value="{{ request.args.get('tags', '') }}" placeholder="email, servidor, app..." class="form-input">
+                        </div>
+
+                        <div class="flex items-end space-x-3">
+                            <div class="checkbox-container">
+                                <input type="checkbox" name="expired_only" id="expired_only" value="true" {% if request.args.get('expired_only') %}checked{% endif %} class="form-checkbox">
+                                <label for="expired_only" class="form-checkbox-label">
+                                    <span class="checkbox-title">Solo caducadas</span>
+                                    <span class="checkbox-description">Mostrar únicamente las contraseñas que han expirado</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-search mr-2"></i>
+                            Buscar
+                        </button>
+                        <a href="{{ url_for('list_passwords') }}" class="btn-secondary">
+                            <i class="fas fa-times mr-2"></i>
+                            Limpiar Filtros
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Passwords List -->
+    <div class="animate-fade-in-up" style="animation-delay: 0.2s;">
+        {% if passwords %}
+        <div class="card shadow-xl">
+            <div class="overflow-hidden">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead class="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600">
+                        <tr>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                                <i class="fas fa-key mr-2 text-primary-500"></i>Recurso
+                            </th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                                <i class="fas fa-user mr-2 text-indigo-500"></i>Usuario
+                            </th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                                <i class="fas fa-building mr-2 text-blue-500"></i>Departamento
+                            </th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                                <i class="fas fa-shield-alt mr-2 text-green-500"></i>Estado
+                            </th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                                <i class="fas fa-clock mr-2 text-purple-500"></i>Actualizado
+                            </th>
+                            <th scope="col" class="relative px-6 py-4">
+                                <span class="sr-only">Acciones</span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                        {% for password in passwords %}
+                        <tr class="hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 dark:hover:from-gray-700 dark:hover:to-gray-600 transition-all duration-300 hover-lift">
+                            <td class="px-6 py-6">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-12 w-12">
+                                        <div class="h-12 w-12 rounded-xl bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center shadow-lg">
+                                            <i class="fas fa-key text-white"></i>
+                                        </div>
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="flex items-center">
+                                            <div class="text-lg font-semibold text-gray-900 dark:text-white">
+                                                {{ password.name }}
+                                            </div>
+                                            {% if password.url %}
+                                            <a href="{{ password.url }}" target="_blank" class="ml-2 text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-200 p-1 rounded transition-colors duration-200">
+                                                <i class="fas fa-external-link-alt"></i>
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                        {% if password.tags %}
+                                        <div class="mt-2 flex flex-wrap gap-1">
+                                            {% for tag in password.get_tags_list() %}
+                                            <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs font-medium bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 dark:from-blue-900 dark:to-indigo-900 dark:text-blue-200 border border-blue-200 dark:border-blue-700">
+                                                <i class="fas fa-tag mr-1"></i>{{ tag }}
+                                            </span>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-6">
+                                {% if password.username %}
+                                <div class="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600">
+                                    <span class="font-mono text-sm text-gray-900 dark:text-white">{{ password.username }}</span>
+                                </div>
+                                {% else %}
+                                <span class="text-gray-400 italic text-sm">Sin usuario</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-6">
+                                <span class="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 dark:from-blue-900 dark:to-blue-800 dark:text-blue-200 border border-blue-300 dark:border-blue-600">
+                                    <i class="fas fa-building mr-2"></i>{{ password.department.name }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-6">
+                                {% if password.check_expiry() %}
+                                <span class="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-red-100 to-red-200 text-red-800 dark:from-red-900 dark:to-red-800 dark:text-red-200 border border-red-300 dark:border-red-600 shadow-sm">
+                                    <i class="fas fa-exclamation-triangle mr-2"></i>Caducada
+                                </span>
+                                {% elif password.expires_at %}
+                                <span class="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-yellow-100 to-amber-200 text-yellow-800 dark:from-yellow-900 dark:to-amber-800 dark:text-yellow-200 border border-yellow-300 dark:border-yellow-600 shadow-sm">
+                                    <i class="fas fa-clock mr-2"></i>Caduca {{ password.expires_at.strftime('%d/%m/%Y') }}
+                                </span>
+                                {% else %}
+                                <span class="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-green-100 to-emerald-200 text-green-800 dark:from-green-900 dark:to-emerald-800 dark:text-green-200 border border-green-300 dark:border-green-600 shadow-sm">
+                                    <i class="fas fa-check mr-2"></i>Activa
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-6 text-sm text-gray-500 dark:text-gray-400">
+                                <div class="flex items-center">
+                                    <i class="fas fa-calendar-alt mr-2 text-purple-400"></i>
+                                    {{ password.updated_at.strftime('%d/%m/%Y %H:%M') }}
+                                </div>
+                            </td>
+                            <td class="px-6 py-6 text-right">
+                                <div class="flex items-center justify-end space-x-2">
+                                    <button onclick="viewPassword({{ password.id }})" class="p-2 text-primary-600 dark:text-primary-400 hover:text-primary-900 dark:hover:text-primary-200 hover:bg-primary-50 dark:hover:bg-primary-900 rounded-lg transition-all duration-200" title="Ver contraseña">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    {% if current_user.can_edit() and (current_user.can_admin() or password.department_id == current_user.department_id) %}
+                                    <a href="{{ url_for('edit_password', id=password.id) }}" class="p-2 text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-200 hover:bg-indigo-50 dark:hover:bg-indigo-900 rounded-lg transition-all duration-200" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button onclick="deletePassword({{ password.id }}, '{{ password.name }}')" class="p-2 text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-200 hover:bg-red-50 dark:hover:bg-red-900 rounded-lg transition-all duration-200" title="Eliminar">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% else %}
+        <!-- Empty State -->
+        <div class="card shadow-xl text-center py-16">
+            <div class="text-gray-500 dark:text-gray-400">
+                <div class="mx-auto h-24 w-24 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-700 rounded-full flex items-center justify-center mb-6">
+                    <i class="fas fa-search text-4xl text-gray-400 dark:text-gray-500"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">No se encontraron contraseñas</h3>
+                <p class="text-gray-600 dark:text-gray-400 mb-8 max-w-md mx-auto">
+                    {% if request.args.get('query') or request.args.get('department_id') or request.args.get('tags') or request.args.get('expired_only') %}
+                        No hay contraseñas que coincidan con los filtros aplicados. Intenta ajustar los criterios de búsqueda.
+                    {% else %}
+                        Aún no has agregado ninguna contraseña. Comienza creando tu primera entrada.
+                    {% endif %}
+                </p>
+                {% if current_user.can_edit() %}
+                <a href="{{ url_for('new_password') }}" class="btn-primary shadow-glow">
+                    <i class="fas fa-plus mr-2"></i>
+                    {% if request.args.get('query') or request.args.get('department_id') or request.args.get('tags') or request.args.get('expired_only') %}
+                        Nueva Contraseña
+                    {% else %}
+                        Crear Primera Contraseña
+                    {% endif %}
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Password View Modal -->
+<div id="passwordModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50 backdrop-blur-sm">
+    <div class="relative top-20 mx-auto p-5 border-0 max-w-md shadow-2xl rounded-2xl bg-white dark:bg-gray-800">
+        <div class="mt-3">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white">
+                    <i class="fas fa-eye mr-2 text-primary-500"></i>
+                    Ver Contraseña
+                </h3>
+                <button onclick="closePasswordModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Contraseña</label>
+                    <div class="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 p-4 rounded-xl border border-gray-200 dark:border-gray-600">
+                        <div class="flex items-center justify-between">
+                            <span id="passwordValue" class="font-mono text-lg text-gray-900 dark:text-white"></span>
+                            <div class="flex space-x-2">
+                                <button onclick="togglePasswordVisibility()" class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-all duration-200" title="Mostrar/Ocultar">
+                                    <i id="passwordVisibilityIcon" class="fas fa-eye"></i>
+                                </button>
+                                <button onclick="copyPassword()" class="p-2 text-primary-600 hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-200 hover:bg-primary-100 dark:hover:bg-primary-900 rounded-lg transition-all duration-200" title="Copiar">
+                                    <i id="copyIcon" class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="passwordStrength"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50 backdrop-blur-sm">
+    <div class="relative top-20 mx-auto p-5 border-0 max-w-md shadow-2xl rounded-2xl bg-white dark:bg-gray-800">
+        <div class="mt-3 text-center">
+            <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-gradient-to-br from-red-100 to-red-200 dark:from-red-900 dark:to-red-800 mb-4">
+                <i class="fas fa-exclamation-triangle text-red-600 dark:text-red-300 text-xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Eliminar Contraseña</h3>
+            <div class="px-7 py-3">
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                    ¿Estás seguro de que quieres eliminar la contraseña "<span id="deletePasswordName" class="font-semibold text-gray-900 dark:text-white"></span>"?
+                </p>
+                <p class="text-sm text-red-600 dark:text-red-400 mt-2 font-medium">
+                    Esta acción no se puede deshacer.
+                </p>
+            </div>
+            <div class="px-4 py-3 space-y-3">
+                <form id="deleteForm" method="POST" style="display: none;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                </form>
+                <button onclick="confirmDelete()" class="btn-danger w-full justify-center">
+                    <i class="fas fa-trash mr-2"></i>
+                    Eliminar Definitivamente
+                </button>
+                <button onclick="closeDeleteModal()" class="btn-secondary w-full justify-center">
+                    <i class="fas fa-times mr-2"></i>
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentPassword = '';
+let passwordVisible = false;
+let deletePasswordId = null;
+
+function viewPassword(passwordId) {
+    fetch(`/passwords/${passwordId}/view`)
+        .then(response => response.json())
+        .then(data => {
+            currentPassword = data.password;
+            passwordVisible = false;
+            updatePasswordDisplay();
+
+            // Mostrar fortaleza de contraseña
+            displayPasswordStrength(data.strength);
+
+            document.getElementById('passwordModal').classList.remove('hidden');
+        })
+        .catch(error => {
+            alert('Error al obtener la contraseña');
+            console.error('Error:', error);
+        });
+}
+
+function updatePasswordDisplay() {
+    const passwordElement = document.getElementById('passwordValue');
+    const iconElement = document.getElementById('passwordVisibilityIcon');
+
+    if (passwordVisible) {
+        passwordElement.textContent = currentPassword;
+        iconElement.classList.remove('fa-eye');
+        iconElement.classList.add('fa-eye-slash');
+    } else {
+        passwordElement.textContent = '•'.repeat(currentPassword.length);
+        iconElement.classList.remove('fa-eye-slash');
+        iconElement.classList.add('fa-eye');
+    }
+}
+
+function togglePasswordVisibility() {
+    passwordVisible = !passwordVisible;
+    updatePasswordDisplay();
+}
+
+function displayPasswordStrength(strength) {
+    const strengthDiv = document.getElementById('passwordStrength');
+    let strengthClass = '';
+
+    switch(strength.strength) {
+        case 'Muy Fuerte':
+            strengthClass = 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+            break;
+        case 'Fuerte':
+            strengthClass = 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+            break;
+        case 'Moderada':
+            strengthClass = 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
+            break;
+        case 'Débil':
+            strengthClass = 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200';
+            break;
+        case 'Muy Débil':
+            strengthClass = 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+            break;
+    }
+
+    strengthDiv.innerHTML = `
+        <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Fortaleza</label>
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${strengthClass}">
+                ${strength.strength}
+            </span>
+        </div>
+    `;
+}
+
+function closePasswordModal() {
+    document.getElementById('passwordModal').classList.add('hidden');
+    currentPassword = '';
+    passwordVisible = false;
+}
+
+function copyPassword() {
+    navigator.clipboard.writeText(currentPassword).then(() => {
+        const icon = document.getElementById('copyIcon');
+        icon.classList.remove('fa-copy');
+        icon.classList.add('fa-check');
+
+        setTimeout(() => {
+            icon.classList.remove('fa-check');
+            icon.classList.add('fa-copy');
+        }, 2000);
+    });
+}
+
+function deletePassword(passwordId, passwordName) {
+    deletePasswordId = passwordId;
+    document.getElementById('deletePasswordName').textContent = passwordName;
+    document.getElementById('deleteModal').classList.remove('hidden');
+}
+
+function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.add('hidden');
+    deletePasswordId = null;
+}
+
+function confirmDelete() {
+    if (deletePasswordId) {
+        const form = document.getElementById('deleteForm');
+        form.action = `/passwords/${deletePasswordId}/delete`;
+        form.submit();
+    }
+}
+
+// Cerrar modales al hacer clic fuera
+document.getElementById('passwordModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closePasswordModal();
+    }
+});
+
+document.getElementById('deleteModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeDeleteModal();
+    }
+});
+</script>
+{% endblock %}

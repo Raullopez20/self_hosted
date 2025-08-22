@@ -1,0 +1,490 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - {{ config.APP_NAME }}{% endblock %}
+
+{% block content %}
+<div class="px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="md:flex md:items-center md:justify-between">
+            <div class="flex-1 min-w-0">
+                <h2 class="text-3xl font-bold leading-7 text-gray-900 dark:text-white sm:text-4xl gradient-text">
+                    {{ title }}
+                </h2>
+                <p class="mt-2 text-lg text-gray-600 dark:text-gray-400">
+                    {% if password %}
+                    Modifica los datos de la contraseña existente
+                    {% else %}
+                    Añade una nueva contraseña al sistema de forma segura
+                    {% endif %}
+                </p>
+            </div>
+            <div class="mt-4 flex md:mt-0 md:ml-4">
+                <a href="{{ url_for('list_passwords') }}" class="btn-secondary">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Volver
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div class="card shadow-xl animate-fade-in-up">
+        <form method="POST" class="p-6">
+            {{ form.hidden_tag() }}
+
+            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <!-- Nombre del Recurso -->
+                <div class="sm:col-span-2">
+                    <div class="form-group">
+                        {{ form.name.label(class="form-label") }}
+                        <div class="relative">
+                            {{ form.name(class="form-input focus-ring pr-10", placeholder="Ej: Servidor Web, Email Corporativo, VPN...") }}
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                <i class="fas fa-tag text-gray-400"></i>
+                            </div>
+                        </div>
+                        {% if form.name.errors %}
+                            {% for error in form.name.errors %}
+                                <p class="form-error">{{ error }}</p>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Usuario -->
+                <div>
+                    <div class="form-group">
+                        {{ form.username.label(class="form-label") }}
+                        <div class="relative">
+                            {{ form.username(class="form-input focus-ring pr-10", placeholder="usuario@empresa.com") }}
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                <i class="fas fa-user text-gray-400"></i>
+                            </div>
+                        </div>
+                        {% if form.username.errors %}
+                            {% for error in form.username.errors %}
+                                <p class="form-error">{{ error }}</p>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Departamento -->
+                <div>
+                    <div class="form-group">
+                        {{ form.department_id.label(class="form-label") }}
+                        {{ form.department_id(class="form-select focus-ring") }}
+                        {% if form.department_id.errors %}
+                            {% for error in form.department_id.errors %}
+                                <p class="form-error">{{ error }}</p>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Contraseña -->
+                <div class="sm:col-span-2">
+                    <div class="form-group">
+                        {{ form.password.label(class="form-label") }}
+                        <div class="flex space-x-3">
+                            <div class="flex-1 relative">
+                                {{ form.password(class="form-input focus-ring pr-20", type="password", id="passwordField", placeholder="Ingresa la contraseña" if not password else "Dejar vacío para mantener actual") }}
+                                <div class="absolute inset-y-0 right-0 flex items-center space-x-2 pr-3">
+                                    <button type="button" onclick="togglePassword('passwordField', 'passwordEye')" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200">
+                                        <i class="fas fa-eye" id="passwordEye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <button type="button" onclick="openPasswordGenerator()" class="btn-secondary px-4">
+                                <i class="fas fa-magic mr-2"></i>
+                                Generar
+                            </button>
+                        </div>
+                        {% if form.password.errors %}
+                            {% for error in form.password.errors %}
+                                <p class="form-error">{{ error }}</p>
+                            {% endfor %}
+                        {% endif %}
+                        <div id="passwordStrength" class="mt-3"></div>
+                    </div>
+                </div>
+
+                <!-- Confirmar Contraseña -->
+                <div class="sm:col-span-2">
+                    <div class="form-group">
+                        {{ form.password_confirm.label(class="form-label") }}
+                        <div class="relative">
+                            {{ form.password_confirm(class="form-input focus-ring pr-10", type="password", id="confirmPasswordField", placeholder="Confirma la contraseña") }}
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                <button type="button" onclick="togglePassword('confirmPasswordField', 'confirmPasswordEye')" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200">
+                                    <i class="fas fa-eye" id="confirmPasswordEye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        {% if form.password_confirm.errors %}
+                            {% for error in form.password_confirm.errors %}
+                                <p class="form-error">{{ error }}</p>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- URL -->
+                <div class="sm:col-span-2">
+                    <div class="form-group">
+                        {{ form.url.label(class="form-label") }}
+                        <div class="relative">
+                            {{ form.url(class="form-input focus-ring pr-10", placeholder="https://ejemplo.com") }}
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                <i class="fas fa-link text-gray-400"></i>
+                            </div>
+                        </div>
+                        {% if form.url.errors %}
+                            {% for error in form.url.errors %}
+                                <p class="form-error">{{ error }}</p>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Etiquetas -->
+                <div>
+                    <div class="form-group">
+                        {{ form.tags.label(class="form-label") }}
+                        {{ form.tags(class="form-input focus-ring", placeholder="servidor, email, importante") }}
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Separa las etiquetas con comas</p>
+                        {% if form.tags.errors %}
+                            {% for error in form.tags.errors %}
+                                <p class="form-error">{{ error }}</p>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Fecha de Caducidad -->
+                <div>
+                    <div class="form-group">
+                        {{ form.expires_at.label(class="form-label") }}
+                        {{ form.expires_at(class="form-input focus-ring") }}
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Opcional: fecha en que caduca la contraseña</p>
+                        {% if form.expires_at.errors %}
+                            {% for error in form.expires_at.errors %}
+                                <p class="form-error">{{ error }}</p>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Observaciones -->
+                <div class="sm:col-span-2">
+                    <div class="form-group">
+                        {{ form.notes.label(class="form-label") }}
+                        {{ form.notes(class="form-input focus-ring", rows="4", placeholder="Información adicional, instrucciones especiales, etc.") }}
+                        {% if form.notes.errors %}
+                            {% for error in form.notes.errors %}
+                                <p class="form-error">{{ error }}</p>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if password %}
+                <!-- Motivo del Cambio (solo para edición) -->
+                <div class="sm:col-span-2">
+                    <div class="form-group">
+                        {{ form.change_reason.label(class="form-label") }}
+                        {{ form.change_reason(class="form-input focus-ring", placeholder="Ej: Caducidad, compromiso de seguridad, rotación programada...") }}
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Solo si cambias la contraseña</p>
+                        {% if form.change_reason.errors %}
+                            {% for error in form.change_reason.errors %}
+                                <p class="form-error">{{ error }}</p>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Submit Buttons -->
+            <div class="flex justify-end space-x-3 pt-8 mt-8 border-t border-gray-200 dark:border-gray-700">
+                <a href="{{ url_for('list_passwords') }}" class="btn-secondary">
+                    <i class="fas fa-times mr-2"></i>
+                    Cancelar
+                </a>
+                <button type="submit" class="btn-primary shadow-glow">
+                    <i class="fas fa-save mr-2"></i>
+                    {% if password %}Actualizar Contraseña{% else %}Guardar Contraseña{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Password Generator Modal -->
+<div id="generatorModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 max-w-md mx-4 shadow-2xl animate-fade-in-up">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-xl font-bold text-gray-900 dark:text-white">
+                <i class="fas fa-magic mr-2 text-primary-500"></i>
+                Generador de Contraseñas
+            </h3>
+            <button onclick="closePasswordGenerator()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <form id="generatorForm" class="space-y-4">
+            <div class="form-group">
+                <label class="form-label">Longitud</label>
+                <select id="length" class="form-select focus-ring">
+                    <option value="12">12 caracteres</option>
+                    <option value="16" selected>16 caracteres</option>
+                    <option value="20">20 caracteres</option>
+                    <option value="24">24 caracteres</option>
+                    <option value="32">32 caracteres</option>
+                </select>
+            </div>
+
+            <div class="checkbox-group">
+                <div class="checkbox-group-title">Opciones del Generador</div>
+                <div class="checkbox-container">
+                    <input type="checkbox" id="includeUppercase" checked class="form-checkbox">
+                    <label for="includeUppercase" class="form-checkbox-label">
+                        <span class="checkbox-title">Incluir Mayúsculas (A-Z)</span>
+                        <span class="checkbox-description">Agregar letras mayúsculas para mayor seguridad</span>
+                    </label>
+                </div>
+                <div class="checkbox-container">
+                    <input type="checkbox" id="includeLowercase" checked class="form-checkbox">
+                    <label for="includeLowercase" class="form-checkbox-label">
+                        <span class="checkbox-title">Incluir Minúsculas (a-z)</span>
+                        <span class="checkbox-description">Agregar letras minúsculas como base</span>
+                    </label>
+                </div>
+                <div class="checkbox-container">
+                    <input type="checkbox" id="includeNumbers" checked class="form-checkbox">
+                    <label for="includeNumbers" class="form-checkbox-label">
+                        <span class="checkbox-title">Incluir Números (0-9)</span>
+                        <span class="checkbox-description">Agregar dígitos numéricos</span>
+                    </label>
+                </div>
+                <div class="checkbox-container">
+                    <input type="checkbox" id="includeSymbols" checked class="form-checkbox">
+                    <label for="includeSymbols" class="form-checkbox-label">
+                        <span class="checkbox-title">Incluir Símbolos (!@#$%)</span>
+                        <span class="checkbox-description">Agregar caracteres especiales para máxima seguridad</span>
+                    </label>
+                </div>
+                <div class="checkbox-container">
+                    <input type="checkbox" id="excludeAmbiguous" checked class="form-checkbox">
+                    <label for="excludeAmbiguous" class="form-checkbox-label">
+                        <span class="checkbox-title">Excluir Ambiguos (0,O,l,I)</span>
+                        <span class="checkbox-description">Evitar caracteres que pueden confundirse</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="space-y-3">
+                <button type="button" onclick="generatePassword()" class="btn-primary w-full">
+                    <i class="fas fa-magic mr-2"></i>
+                    Generar Contraseña
+                </button>
+
+                <div id="generatedPasswordContainer" class="hidden">
+                    <div class="form-group">
+                        <label class="form-label">Contraseña Generada</label>
+                        <div class="flex space-x-2">
+                            <input type="text" id="generatedPassword" readonly class="form-input flex-1 font-mono">
+                            <button type="button" onclick="copyGeneratedPassword()" class="btn-secondary p-2">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                        <div id="generatedPasswordStrength" class="mt-2"></div>
+                    </div>
+                    <button type="button" onclick="useGeneratedPassword()" class="btn-primary w-full">
+                        <i class="fas fa-check mr-2"></i>
+                        Usar Esta Contraseña
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Password visibility toggle
+function togglePassword(fieldId, eyeId) {
+    const field = document.getElementById(fieldId);
+    const eye = document.getElementById(eyeId);
+
+    if (field.type === 'password') {
+        field.type = 'text';
+        eye.classList.remove('fa-eye');
+        eye.classList.add('fa-eye-slash');
+    } else {
+        field.type = 'password';
+        eye.classList.remove('fa-eye-slash');
+        eye.classList.add('fa-eye');
+    }
+}
+
+// Password strength checker
+function checkPasswordStrength(password) {
+    if (!password) return null;
+
+    let score = 0;
+    let feedback = [];
+
+    // Length check
+    if (password.length >= 8) score++;
+    if (password.length >= 12) score++;
+    if (password.length >= 16) score++;
+
+    // Character variety
+    if (/[a-z]/.test(password)) score++;
+    if (/[A-Z]/.test(password)) score++;
+    if (/\d/.test(password)) score++;
+    if (/[^a-zA-Z\d]/.test(password)) score++;
+
+    // Common patterns (negative score)
+    if (/(.)\1{2,}/.test(password)) score--;
+    if (/123|abc|qwe/i.test(password)) score--;
+
+    let strength = '';
+    let strengthClass = '';
+
+    if (score >= 6) {
+        strength = 'Muy Fuerte';
+        strengthClass = 'badge-success';
+    } else if (score >= 5) {
+        strength = 'Fuerte';
+        strengthClass = 'badge-primary';
+    } else if (score >= 3) {
+        strength = 'Moderada';
+        strengthClass = 'badge-warning';
+    } else if (score >= 1) {
+        strength = 'Débil';
+        strengthClass = 'badge-warning';
+    } else {
+        strength = 'Muy Débil';
+        strengthClass = 'badge-error';
+    }
+
+    return { strength, strengthClass, score };
+}
+
+// Update password strength display
+function updatePasswordStrength() {
+    const password = document.getElementById('passwordField').value;
+    const strengthDiv = document.getElementById('passwordStrength');
+
+    if (!password) {
+        strengthDiv.innerHTML = '';
+        return;
+    }
+
+    const result = checkPasswordStrength(password);
+    if (result) {
+        strengthDiv.innerHTML = `
+            <div class="flex items-center space-x-3">
+                <span class="badge ${result.strengthClass}">
+                    Fortaleza: ${result.strength}
+                </span>
+                ${/[^a-zA-Z\d]/.test(password) ? '<span class="text-xs text-green-600 dark:text-green-400"><i class="fas fa-check mr-1"></i>Incluye símbolos</span>' : ''}
+            </div>
+        `;
+    }
+}
+
+// Password generator functions
+function openPasswordGenerator() {
+    document.getElementById('generatorModal').classList.remove('hidden');
+    document.getElementById('generatorModal').classList.add('flex');
+}
+
+function closePasswordGenerator() {
+    document.getElementById('generatorModal').classList.add('hidden');
+    document.getElementById('generatorModal').classList.remove('flex');
+    document.getElementById('generatedPasswordContainer').classList.add('hidden');
+}
+
+function generatePassword() {
+    const length = parseInt(document.getElementById('length').value);
+    const includeUppercase = document.getElementById('includeUppercase').checked;
+    const includeLowercase = document.getElementById('includeLowercase').checked;
+    const includeNumbers = document.getElementById('includeNumbers').checked;
+    const includeSymbols = document.getElementById('includeSymbols').checked;
+    const excludeAmbiguous = document.getElementById('excludeAmbiguous').checked;
+
+    let charset = '';
+    if (includeUppercase) charset += excludeAmbiguous ? 'ABCDEFGHJKLMNPQRSTUVWXYZ' : 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    if (includeLowercase) charset += excludeAmbiguous ? 'abcdefghjkmnpqrstuvwxyz' : 'abcdefghijklmnopqrstuvwxyz';
+    if (includeNumbers) charset += excludeAmbiguous ? '23456789' : '0123456789';
+    if (includeSymbols) charset += '!@#$%^&*()_+-=[]{}|;:,.<>?';
+
+    if (!charset) {
+        alert('Debes seleccionar al menos un tipo de carácter');
+        return;
+    }
+
+    let password = '';
+    for (let i = 0; i < length; i++) {
+        password += charset.charAt(Math.floor(Math.random() * charset.length));
+    }
+
+    document.getElementById('generatedPassword').value = password;
+    document.getElementById('generatedPasswordContainer').classList.remove('hidden');
+
+    // Show strength
+    const result = checkPasswordStrength(password);
+    if (result) {
+        document.getElementById('generatedPasswordStrength').innerHTML = `
+            <span class="badge ${result.strengthClass}">
+                Fortaleza: ${result.strength}
+            </span>
+        `;
+    }
+}
+
+function copyGeneratedPassword() {
+    const password = document.getElementById('generatedPassword').value;
+    navigator.clipboard.writeText(password).then(() => {
+        const button = event.target.closest('button');
+        const icon = button.querySelector('i');
+        icon.classList.remove('fa-copy');
+        icon.classList.add('fa-check');
+
+        setTimeout(() => {
+            icon.classList.remove('fa-check');
+            icon.classList.add('fa-copy');
+        }, 2000);
+    });
+}
+
+function useGeneratedPassword() {
+    const password = document.getElementById('generatedPassword').value;
+    document.getElementById('passwordField').value = password;
+    document.getElementById('confirmPasswordField').value = password;
+    updatePasswordStrength();
+    closePasswordGenerator();
+}
+
+// Event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    const passwordField = document.getElementById('passwordField');
+    if (passwordField) {
+        passwordField.addEventListener('input', updatePasswordStrength);
+    }
+
+    // Close modal when clicking outside
+    document.getElementById('generatorModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closePasswordGenerator();
+        }
+    });
+});
+</script>
+{% endblock %}

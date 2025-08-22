@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Usuario - {{ config.APP_NAME }}{% endblock %}
+
+{% block content %}
+<div class="px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="md:flex md:items-center md:justify-between">
+            <div class="flex-1 min-w-0">
+                <h2 class="text-3xl font-bold leading-7 text-gray-900 dark:text-white sm:text-4xl gradient-text">
+                    Editar Usuario
+                </h2>
+                <p class="mt-2 text-lg text-gray-600 dark:text-gray-400">
+                    Modifica la información del usuario {{ user.username }}
+                </p>
+            </div>
+            <div class="mt-4 flex md:mt-0 md:ml-4">
+                <a href="{{ url_for('admin_users') }}" class="btn-secondary mr-3">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Volver
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div class="card shadow-xl animate-fade-in-up">
+        <form method="POST" class="p-6">
+            {{ form.hidden_tag() }}
+
+            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <!-- Username -->
+                <div class="form-group">
+                    {{ form.username.label(class="form-label") }}
+                    {{ form.username(class="form-input") }}
+                    {% if form.username.errors %}
+                        {% for error in form.username.errors %}
+                            <p class="form-error">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <!-- Email -->
+                <div class="form-group">
+                    {{ form.email.label(class="form-label") }}
+                    {{ form.email(class="form-input") }}
+                    {% if form.email.errors %}
+                        {% for error in form.email.errors %}
+                            <p class="form-error">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <!-- Role -->
+                <div class="form-group">
+                    {{ form.role.label(class="form-label") }}
+                    {{ form.role(class="form-select") }}
+                    {% if form.role.errors %}
+                        {% for error in form.role.errors %}
+                            <p class="form-error">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <!-- Department -->
+                <div class="form-group">
+                    {{ form.department_id.label(class="form-label") }}
+                    {{ form.department_id(class="form-select") }}
+                    {% if form.department_id.errors %}
+                        {% for error in form.department_id.errors %}
+                            <p class="form-error">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Password fields -->
+            <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                    Cambiar Contraseña (opcional)
+                </h4>
+                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                    <div class="form-group">
+                        {{ form.password.label(class="form-label") }}
+                        {{ form.password(class="form-input") }}
+                        {% if form.password.errors %}
+                            {% for error in form.password.errors %}
+                                <p class="form-error">{{ error }}</p>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.confirm_password.label(class="form-label") }}
+                        {{ form.confirm_password(class="form-input") }}
+                        {% if form.confirm_password.errors %}
+                            {% for error in form.confirm_password.errors %}
+                                <p class="form-error">{{ error }}</p>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit button -->
+            <div class="mt-8 flex justify-end space-x-3">
+                <a href="{{ url_for('admin_users') }}" class="btn-secondary">
+                    Cancelar
+                </a>
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-save mr-2"></i>
+                    Guardar Cambios
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

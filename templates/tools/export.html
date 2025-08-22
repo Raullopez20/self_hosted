@@ -1,0 +1,504 @@
+{% extends "base.html" %}
+
+{% block title %}Exportar Contraseñas - {{ config.APP_NAME }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-2xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-8 animate-fade-in-up">
+            <div class="mx-auto h-16 w-16 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center mb-4 shadow-glow">
+                <i class="fas fa-download text-white text-2xl"></i>
+            </div>
+            <h2 class="text-3xl font-bold gradient-text">
+                Exportar Contraseñas
+            </h2>
+            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                Descarga un archivo CSV cifrado con tus contraseñas de forma segura
+            </p>
+        </div>
+
+        <!-- Export Form -->
+        <div class="card shadow-2xl animate-fade-in-up" style="animation-delay: 0.2s;">
+            <div class="p-8">
+                <form id="exportForm" method="POST" class="space-y-6">
+                    {{ form.hidden_tag() }}
+
+                    <!-- Department Filter -->
+                    {% if current_user.can_admin() %}
+                    <div>
+                        <label for="{{ form.department_id.id }}" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                            <i class="fas fa-building mr-2 text-primary-500"></i>Departamento
+                        </label>
+                        {{ form.department_id(class="form-input") }}
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                            Selecciona un departamento específico o deja en blanco para exportar todos
+                        </p>
+                        {% if form.department_id.errors %}
+                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.department_id.errors[0] }}</p>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Encryption Password -->
+                    <div>
+                        <label for="{{ form.encryption_password.id }}" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                            <i class="fas fa-lock mr-2 text-green-500"></i>Contraseña de Cifrado
+                        </label>
+                        <div class="relative">
+                            {{ form.encryption_password(class="form-input pr-10", placeholder="Ingresa una contraseña fuerte") }}
+                            <button type="button" onclick="togglePassword('encryption_password')" class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                <i id="encryption_password-eye" class="fas fa-eye text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200"></i>
+                            </button>
+                        </div>
+                        {% if form.encryption_password.errors %}
+                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.encryption_password.errors[0] }}</p>
+                        {% endif %}
+                        <div id="passwordStrength" class="mt-2"></div>
+                    </div>
+
+                    <!-- Confirm Encryption Password -->
+                    <div>
+                        <label for="{{ form.encryption_password_confirm.id }}" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                            <i class="fas fa-shield-alt mr-2 text-green-500"></i>Confirmar Contraseña
+                        </label>
+                        <div class="relative">
+                            {{ form.encryption_password_confirm(class="form-input pr-10", placeholder="Confirma la contraseña") }}
+                            <button type="button" onclick="togglePassword('encryption_password_confirm')" class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                <i id="encryption_password_confirm-eye" class="fas fa-eye text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200"></i>
+                            </button>
+                        </div>
+                        {% if form.encryption_password_confirm.errors %}
+                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ form.encryption_password_confirm.errors[0] }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Security Notice -->
+                    <div class="bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-6">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-exclamation-triangle text-amber-600 dark:text-amber-400 text-xl"></i>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-semibold text-amber-800 dark:text-amber-200">
+                                    Importante - Seguridad del Archivo
+                                </h3>
+                                <div class="mt-2 text-sm text-amber-700 dark:text-amber-300">
+                                    <ul class="list-disc list-inside space-y-1">
+                                        <li>El archivo será cifrado con AES-256 usando la contraseña que especifiques</li>
+                                        <li>Guarda la contraseña de cifrado en un lugar seguro y separado</li>
+                                        <li>Sin la contraseña, no podrás recuperar los datos del archivo</li>
+                                        <li>No compartas el archivo ni la contraseña por medios inseguros</li>
+                                        <li>Elimina el archivo cuando ya no lo necesites</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Buttons -->
+                    <div class="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200 dark:border-gray-700">
+                        <a href="{{ url_for('dashboard') }}" class="btn-secondary flex-1 justify-center py-3">
+                            <i class="fas fa-arrow-left mr-2"></i>
+                            Volver al Dashboard
+                        </a>
+                        <button type="button" onclick="showExportModal()" class="btn-primary flex-1 justify-center py-3 shadow-glow">
+                            <i class="fas fa-download mr-2"></i>
+                            Exportar Contraseñas
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Export Information -->
+        <div class="card mt-8 animate-fade-in-up" style="animation-delay: 0.4s;">
+            <div class="p-6">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                    <i class="fas fa-info-circle mr-2 text-primary-500"></i>
+                    ¿Qué se incluye en la exportación?
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-600 dark:text-gray-400">
+                    <div class="flex items-center">
+                        <i class="fas fa-check text-green-500 mr-2"></i>
+                        Nombre del recurso
+                    </div>
+                    <div class="flex items-center">
+                        <i class="fas fa-check text-green-500 mr-2"></i>
+                        Usuario/Login
+                    </div>
+                    <div class="flex items-center">
+                        <i class="fas fa-check text-green-500 mr-2"></i>
+                        Contraseña (descifrada)
+                    </div>
+                    <div class="flex items-center">
+                        <i class="fas fa-check text-green-500 mr-2"></i>
+                        URL del sitio
+                    </div>
+                    <div class="flex items-center">
+                        <i class="fas fa-check text-green-500 mr-2"></i>
+                        Notas/Observaciones
+                    </div>
+                    <div class="flex items-center">
+                        <i class="fas fa-check text-green-500 mr-2"></i>
+                        Etiquetas
+                    </div>
+                    <div class="flex items-center">
+                        <i class="fas fa-check text-green-500 mr-2"></i>
+                        Departamento
+                    </div>
+                    <div class="flex items-center">
+                        <i class="fas fa-shield-alt text-primary-500 mr-2"></i>
+                        Todo cifrado con AES-256
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Compatible Applications -->
+        <div class="card mt-6 animate-fade-in-up" style="animation-delay: 0.6s;">
+            <div class="p-6">
+                <h3 class="text-lg font-semibold text-primary-900 dark:text-primary-200 mb-4">
+                    <i class="fas fa-puzzle-piece mr-2 text-primary-500"></i>
+                    Aplicaciones Compatibles
+                </h3>
+                <p class="text-sm text-primary-800 dark:text-primary-300 mb-4">
+                    El archivo CSV cifrado puede ser importado en:
+                </p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-primary-700 dark:text-primary-400">
+                    <div class="flex items-center bg-primary-50 dark:bg-primary-900/20 p-3 rounded-lg">
+                        <i class="fas fa-shield-alt mr-3 text-primary-500"></i>
+                        Este mismo sistema (Importar)
+                    </div>
+                    <div class="flex items-center bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
+                        <i class="fas fa-key mr-3 text-green-500"></i>
+                        KeePass (después de descifrar)
+                    </div>
+                    <div class="flex items-center bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg">
+                        <i class="fas fa-lock mr-3 text-purple-500"></i>
+                        Bitwarden (después de descifrar)
+                    </div>
+                    <div class="flex items-center bg-orange-50 dark:bg-orange-900/20 p-3 rounded-lg">
+                        <i class="fas fa-table mr-3 text-orange-500"></i>
+                        Excel/Calc (después de descifrar)
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmación de Exportación -->
+<div id="exportModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+    <div class="relative bg-white dark:bg-gray-800 rounded-2xl max-w-lg w-full shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden animate-fade-in-up">
+        <!-- Header del Modal -->
+        <div class="bg-gradient-to-r from-primary-500 to-primary-600 px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                        <i class="fas fa-download text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-white">Confirmar Exportación</h3>
+                        <p class="text-sm text-blue-100">Verificar datos antes de proceder</p>
+                    </div>
+                </div>
+                <button onclick="closeExportModal()" class="text-white/80 hover:text-white p-2 rounded-lg hover:bg-white/20 transition-all duration-200">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Contenido del Modal -->
+        <div class="p-6">
+            <div class="space-y-4">
+                <!-- Información de la exportación -->
+                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
+                    <h4 class="font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
+                        <i class="fas fa-info-circle text-blue-500 mr-2"></i>
+                        Resumen de Exportación
+                    </h4>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-600 dark:text-gray-400">Departamento:</span>
+                            <span id="modalDepartment" class="font-medium text-gray-900 dark:text-white"></span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-600 dark:text-gray-400">Cifrado:</span>
+                            <span class="font-medium text-green-600 dark:text-green-400">AES-256</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-600 dark:text-gray-400">Formato:</span>
+                            <span class="font-medium text-gray-900 dark:text-white">.enc (CSV cifrado)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Checklist de seguridad -->
+                <div class="bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+                    <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                        <i class="fas fa-shield-alt mr-2 text-yellow-500"></i>
+                        Checklist de Seguridad
+                    </h4>
+                    <div class="checkbox-group">
+                        <div class="checkbox-container">
+                            <input type="checkbox" id="securityCheck1" class="form-checkbox checkbox-warning">
+                            <label for="securityCheck1" class="form-checkbox-label">
+                                <span class="checkbox-title">Contraseña Segura</span>
+                                <span class="checkbox-description">He verificado que la contraseña de cifrado es fuerte y única</span>
+                            </label>
+                        </div>
+                        <div class="checkbox-container">
+                            <input type="checkbox" id="securityCheck2" class="form-checkbox checkbox-warning">
+                            <label for="securityCheck2" class="form-checkbox-label">
+                                <span class="checkbox-title">Almacenamiento Seguro</span>
+                                <span class="checkbox-description">Guardaré la contraseña de cifrado en un lugar seguro y accesible</span>
+                            </label>
+                        </div>
+                        <div class="checkbox-container">
+                            <input type="checkbox" id="securityCheck3" class="form-checkbox checkbox-warning">
+                            <label for="securityCheck3" class="form-checkbox-label">
+                                <span class="checkbox-title">Eliminación Segura</span>
+                                <span class="checkbox-description">Eliminaré el archivo de forma segura cuando ya no lo necesite</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fortaleza de contraseña en modal -->
+                <div id="modalPasswordStrength" class="hidden">
+                    <div class="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 border border-gray-200 dark:border-gray-600 rounded-xl p-4">
+                        <h4 class="font-semibold text-gray-900 dark:text-white mb-2 flex items-center">
+                            <i class="fas fa-key text-gray-500 mr-2"></i>
+                            Fortaleza de la Contraseña
+                        </h4>
+                        <div id="modalStrengthIndicator"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="flex flex-col sm:flex-row gap-3 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                <button onclick="closeExportModal()" class="btn-secondary flex-1 py-3">
+                    <i class="fas fa-times mr-2"></i>
+                    Cancelar
+                </button>
+                <button id="confirmExportBtn" onclick="confirmExport()" disabled class="btn-primary flex-1 py-3 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i class="fas fa-download mr-2"></i>
+                    Confirmar y Exportar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Progreso -->
+<div id="progressModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center z-50">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 max-w-sm w-full mx-4 shadow-2xl text-center">
+        <div class="w-16 h-16 mx-auto mb-4 relative">
+            <div class="loading-spinner"></div>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Exportando Contraseñas</h3>
+        <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Cifrando y preparando el archivo...</p>
+        <div class="bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
+            <div id="progressBar" class="bg-gradient-to-r from-primary-500 to-primary-600 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+        </div>
+        <p id="progressText" class="text-xs text-gray-500 dark:text-gray-400 mt-2">Preparando...</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function togglePassword(fieldId) {
+    const field = document.getElementById(fieldId);
+    const eye = document.getElementById(fieldId + '-eye');
+
+    if (field.type === 'password') {
+        field.type = 'text';
+        eye.classList.remove('fa-eye');
+        eye.classList.add('fa-eye-slash');
+    } else {
+        field.type = 'password';
+        eye.classList.remove('fa-eye-slash');
+        eye.classList.add('fa-eye');
+    }
+}
+
+function checkPasswordStrength() {
+    const password = document.getElementById('encryption_password').value;
+    if (!password) {
+        document.getElementById('passwordStrength').innerHTML = '';
+        document.getElementById('modalPasswordStrength').classList.add('hidden');
+        return;
+    }
+
+    let score = 0;
+    let feedback = [];
+
+    if (password.length >= 12) score += 2;
+    else if (password.length >= 8) score += 1;
+    else feedback.push("Mínimo 8 caracteres");
+
+    if (/[a-z]/.test(password)) score += 1;
+    else feedback.push("Incluye minúsculas");
+
+    if (/[A-Z]/.test(password)) score += 1;
+    else feedback.push("Incluye mayúsculas");
+
+    if (/[0-9]/.test(password)) score += 1;
+    else feedback.push("Incluye números");
+
+    if (/[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]/.test(password)) score += 1;
+    else feedback.push("Incluye símbolos");
+
+    let strength, strengthClass;
+    if (score >= 5) {
+        strength = "Muy Fuerte";
+        strengthClass = 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+    } else if (score >= 4) {
+        strength = "Fuerte";
+        strengthClass = 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+    } else if (score >= 3) {
+        strength = "Moderada";
+        strengthClass = 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
+    } else if (score >= 2) {
+        strength = "Débil";
+        strengthClass = 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200';
+    } else {
+        strength = "Muy Débil";
+        strengthClass = 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+    }
+
+    const strengthHtml = `
+        <div class="flex items-center justify-between">
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${strengthClass}">
+                Fortaleza: ${strength}
+            </span>
+            ${feedback.length > 0 ? '<span class="text-xs text-gray-500 dark:text-gray-400">' + feedback.join(', ') + '</span>' : ''}
+        </div>
+    `;
+
+    document.getElementById('passwordStrength').innerHTML = strengthHtml;
+    document.getElementById('modalStrengthIndicator').innerHTML = strengthHtml;
+    document.getElementById('modalPasswordStrength').classList.remove('hidden');
+}
+
+function showExportModal() {
+    const password = document.getElementById('encryption_password').value;
+    const confirmPassword = document.getElementById('encryption_password_confirm').value;
+
+    // Validaciones básicas
+    if (!password) {
+        alert('Por favor, ingresa una contraseña de cifrado.');
+        return;
+    }
+
+    if (password.length < 8) {
+        alert('La contraseña debe tener al menos 8 caracteres.');
+        return;
+    }
+
+    if (password !== confirmPassword) {
+        alert('Las contraseñas no coinciden.');
+        return;
+    }
+
+    // Actualizar información del modal
+    const departmentSelect = document.getElementById('department_id');
+    const departmentText = departmentSelect ? departmentSelect.options[departmentSelect.selectedIndex].text : 'Todos los departamentos';
+    document.getElementById('modalDepartment').textContent = departmentText;
+
+    // Verificar fortaleza de contraseña
+    checkPasswordStrength();
+
+    // Mostrar modal
+    document.getElementById('exportModal').classList.remove('hidden');
+    document.getElementById('exportModal').classList.add('flex');
+
+    // Reset checkboxes
+    document.querySelectorAll('#exportModal input[type="checkbox"]').forEach(cb => {
+        cb.checked = false;
+    });
+    updateConfirmButton();
+}
+
+function closeExportModal() {
+    document.getElementById('exportModal').classList.add('hidden');
+    document.getElementById('exportModal').classList.remove('flex');
+}
+
+function updateConfirmButton() {
+    const checkboxes = document.querySelectorAll('#exportModal input[type="checkbox"]');
+    const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+    const confirmBtn = document.getElementById('confirmExportBtn');
+
+    confirmBtn.disabled = !allChecked;
+    if (allChecked) {
+        confirmBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+    } else {
+        confirmBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    }
+}
+
+function confirmExport() {
+    closeExportModal();
+    showProgressModal();
+
+    // Simular progreso
+    let progress = 0;
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+
+    const interval = setInterval(() => {
+        progress += Math.random() * 15;
+        if (progress > 100) progress = 100;
+
+        progressBar.style.width = progress + '%';
+
+        if (progress < 30) {
+            progressText.textContent = 'Validando datos...';
+        } else if (progress < 60) {
+            progressText.textContent = 'Cifrando contraseñas...';
+        } else if (progress < 90) {
+            progressText.textContent = 'Generando archivo...';
+        } else {
+            progressText.textContent = 'Finalizando...';
+        }
+
+        if (progress >= 100) {
+            clearInterval(interval);
+            setTimeout(() => {
+                document.getElementById('progressModal').classList.add('hidden');
+                document.getElementById('exportForm').submit();
+            }, 500);
+        }
+    }, 100);
+}
+
+function showProgressModal() {
+    document.getElementById('progressModal').classList.remove('hidden');
+    document.getElementById('progressModal').classList.add('flex');
+    document.getElementById('progressBar').style.width = '0%';
+    document.getElementById('progressText').textContent = 'Preparando...';
+}
+
+// Event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    // Verificar fortaleza en tiempo real
+    document.getElementById('encryption_password').addEventListener('input', checkPasswordStrength);
+
+    // Actualizar botón de confirmar cuando cambien los checkboxes
+    document.querySelectorAll('#exportModal input[type="checkbox"]').forEach(cb => {
+        cb.addEventListener('change', updateConfirmButton);
+    });
+
+    // Cerrar modal al hacer clic fuera
+    document.getElementById('exportModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeExportModal();
+        }
+    });
+});
+</script>
+{% endblock %}

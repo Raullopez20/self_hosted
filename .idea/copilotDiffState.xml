@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CopilotDiffPersistence">
+    <option name="pendingDiffs">
+      <map>
+        <entry key="$PROJECT_DIR$/.env.example">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/.env.example" />
+              <option name="updatedContent" value="DATABASE_URL=postgresql://user:password@localhost:5432/password_manager&#10;SECRET_KEY=your-super-secret-key-change-this-in-production&#10;JWT_SECRET_KEY=your-jwt-secret-key-change-this-in-production&#10;ENCRYPTION_KEY=your-32-byte-encryption-key-change-this&#10;SMTP_SERVER=smtp.gmail.com&#10;SMTP_PORT=587&#10;SMTP_USERNAME=your-email@gmail.com&#10;SMTP_PASSWORD=your-app-password&#10;FRONTEND_URL=http://localhost:8000" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/test_db_connection.py">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/test_db_connection.py" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>

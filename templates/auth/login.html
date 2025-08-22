@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}Iniciar Sesión - {{ config.APP_NAME }}{% endblock %}
+
+{% block content %}
+    <div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <!-- Animated background blobs -->
+    <div class="absolute top-0 -left-4 w-72 h-72 bg-primary-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
+    <div class="absolute top-0 -right-4 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
+    <div class="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+
+    <div class="max-w-md w-full space-y-8 relative z-10">
+        <!-- Header -->
+        <div class="text-center">
+            <div class="mx-auto h-20 w-20 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center shadow-glow animate-fade-in-up p-2">
+                <img src="{{ url_for('static', filename='img/icono.png') }}" alt="{{ config.APP_NAME }} Logo" class="w-24 h-30  object-contain">
+            </div>
+            <h2 class="mt-6 text-3xl font-bold gradient-text animate-fade-in-up" style="animation-delay: 0.1s;">
+                {{ config.APP_NAME }}
+            </h2>
+            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400 animate-fade-in-up" style="animation-delay: 0.2s;">
+                Inicia sesión para acceder a tu gestor de contraseñas
+            </p>
+        </div>
+
+        <!-- Login Form -->
+        <form class="mt-8 space-y-6 animate-fade-in-up" style="animation-delay: 0.3s;" method="POST">
+            {{ form.hidden_tag() }}
+
+            <div class="card glass shadow-2xl">
+                <div class="p-8 space-y-6">
+                    <div>
+                        <label for="{{ form.username.id }}" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                            <i class="fas fa-user mr-2 text-primary-500"></i>Usuario
+                        </label>
+                        {{ form.username(class="form-input", placeholder="Ingresa tu usuario", autofocus=true) }}
+                        {% if form.username.errors %}
+                            {% for error in form.username.errors %}
+                                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ error }}</p>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label for="{{ form.password.id }}" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                            <i class="fas fa-lock mr-2 text-primary-500"></i>Contraseña
+                        </label>
+                        <div class="relative">
+                            {{ form.password(class="form-input pr-10", placeholder="Ingresa tu contraseña") }}
+                            <button type="button" onclick="togglePassword()" class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                <i id="passwordIcon" class="fas fa-eye text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200"></i>
+                            </button>
+                        </div>
+                        {% if form.password.errors %}
+                            {% for error in form.password.errors %}
+                                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ error }}</p>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    {% if form.two_factor_token %}
+                    <div>
+                        <label for="{{ form.two_factor_token.id }}" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                            <i class="fas fa-shield-alt mr-2 text-green-500"></i>Código 2FA
+                        </label>
+                        {{ form.two_factor_token(class="form-input text-center font-mono tracking-widest", placeholder="000000", maxlength="6") }}
+                        {% if form.two_factor_token.errors %}
+                            {% for error in form.two_factor_token.errors %}
+                                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ error }}</p>
+                            {% endfor %}
+                        {% endif %}
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                            Ingresa el código de 6 dígitos de tu aplicación de autenticación
+                        </p>
+                    </div>
+                    {% endif %}
+
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            {{ form.remember_me(class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 dark:border-gray-600 rounded") }}
+                            <label for="{{ form.remember_me.id }}" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                                Recordarme
+                            </label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <button type="submit" class="btn-primary w-full justify-center py-3 shadow-glow">
+                            <i class="fas fa-sign-in-alt mr-2"></i>
+                            Iniciar Sesión
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <!-- Security Info -->
+        <div class="card glass animate-fade-in-up" style="animation-delay: 0.4s;">
+            <div class="p-6">
+                <div class="flex items-center justify-center space-x-6 text-sm text-gray-600 dark:text-gray-400">
+                    <div class="flex items-center">
+                        <i class="fas fa-lock mr-2 text-green-500"></i>
+                        <span>Cifrado AES-256</span>
+                    </div>
+                    <div class="flex items-center">
+                        <i class="fas fa-shield-alt mr-2 text-blue-500"></i>
+                        <span>Conexión HTTPS</span>
+                    </div>
+                    <div class="flex items-center">
+                        <i class="fas fa-eye-slash mr-2 text-purple-500"></i>
+                        <span>Zero Knowledge</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function togglePassword() {
+    const passwordField = document.getElementById('{{ form.password.id }}');
+    const passwordIcon = document.getElementById('passwordIcon');
+
+    if (passwordField.type === 'password') {
+        passwordField.type = 'text';
+        passwordIcon.classList.remove('fa-eye');
+        passwordIcon.classList.add('fa-eye-slash');
+    } else {
+        passwordField.type = 'password';
+        passwordIcon.classList.remove('fa-eye-slash');
+        passwordIcon.classList.add('fa-eye');
+    }
+}
+
+// Auto-format 2FA code if field exists
+{% if form.two_factor_token %}
+document.getElementById('{{ form.two_factor_token.id }}').addEventListener('input', function(e) {
+    this.value = this.value.replace(/[^0-9]/g, '');
+    if (this.value.length > 6) {
+        this.value = this.value.slice(0, 6);
+    }
+});
+{% endif %}
+</script>
+{% endblock %}

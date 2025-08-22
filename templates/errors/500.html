@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Error del Servidor - {{ config.APP_NAME }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8 text-center">
+        <div class="animate-fade-in-up">
+            <!-- Icono de error -->
+            <div class="mx-auto h-24 w-24 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-8">
+                <i class="fas fa-exclamation-triangle text-red-600 dark:text-red-400 text-4xl"></i>
+            </div>
+
+            <!-- Código de error -->
+            <h1 class="text-6xl font-bold text-gray-900 dark:text-white mb-4">500</h1>
+
+            <!-- Mensaje principal -->
+            <h2 class="text-2xl font-semibold text-gray-700 dark:text-gray-300 mb-4">
+                Error del Servidor
+            </h2>
+
+            <!-- Descripción -->
+            <p class="text-gray-600 dark:text-gray-400 mb-8 max-w-sm mx-auto">
+                Ha ocurrido un error interno en el servidor. Nuestro equipo ha sido notificado y está trabajando para solucionarlo.
+            </p>
+
+            <!-- Botones de acción -->
+            <div class="space-y-4">
+                <a href="{{ url_for('dashboard') if current_user.is_authenticated else url_for('login') }}"
+                   class="btn-primary inline-flex items-center gap-2">
+                    <i class="fas fa-home"></i>
+                    {% if current_user.is_authenticated %}
+                        Volver al Dashboard
+                    {% else %}
+                        Ir al Inicio
+                    {% endif %}
+                </a>
+
+                <button onclick="window.history.back()"
+                        class="btn-secondary inline-flex items-center gap-2 ml-4">
+                    <i class="fas fa-arrow-left"></i>
+                    Volver Atrás
+                </button>
+            </div>
+
+            <!-- Información adicional -->
+            <div class="mt-8 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg text-sm text-gray-600 dark:text-gray-400">
+                <p class="mb-2">Si el problema persiste, puedes:</p>
+                <ul class="text-left space-y-1">
+                    <li>• Intentar recargar la página</li>
+                    <li>• Contactar al administrador del sistema</li>
+                    <li>• Verificar tu conexión a internet</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

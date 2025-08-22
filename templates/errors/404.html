@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Página no encontrada - {{ config.APP_NAME }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-red-50 via-white to-pink-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <!-- Animated background blobs -->
+    <div class="absolute top-0 -left-4 w-72 h-72 bg-red-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
+    <div class="absolute top-0 -right-4 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
+    <div class="absolute -bottom-8 left-20 w-72 h-72 bg-orange-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+
+    <div class="max-w-md w-full text-center relative z-10">
+        <div class="card glass shadow-2xl animate-fade-in-up">
+            <div class="p-8">
+                <!-- Error Icon -->
+                <div class="mx-auto h-24 w-24 bg-gradient-to-br from-red-100 to-red-200 dark:from-red-900 dark:to-red-800 rounded-full flex items-center justify-center shadow-lg mb-6">
+                    <i class="fas fa-exclamation-triangle text-red-600 dark:text-red-300 text-3xl"></i>
+                </div>
+
+                <!-- Error Code -->
+                <h1 class="text-6xl font-bold gradient-text mb-4">404</h1>
+
+                <!-- Error Title -->
+                <h2 class="text-2xl font-semibold text-gray-700 dark:text-gray-300 mb-4">Página no encontrada</h2>
+
+                <!-- Error Description -->
+                <p class="text-gray-500 dark:text-gray-400 mb-8">
+                    La página que buscas no existe o ha sido movida. Puede que la URL esté mal escrita o que el recurso haya sido eliminado.
+                </p>
+
+                <!-- Action Buttons -->
+                <div class="space-y-3">
+                    <a href="{{ url_for('dashboard') }}" class="btn-primary w-full justify-center shadow-glow">
+                        <i class="fas fa-home mr-2"></i>
+                        Ir al Dashboard
+                    </a>
+                    <button onclick="history.back()" class="btn-secondary w-full justify-center">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Volver atrás
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Help Section -->
+        <div class="card glass mt-6 animate-fade-in-up" style="animation-delay: 0.2s;">
+            <div class="p-6">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+                    <i class="fas fa-question-circle mr-2 text-blue-500"></i>
+                    ¿Necesitas ayuda?
+                </h3>
+                <div class="text-sm text-gray-600 dark:text-gray-400 space-y-2">
+                    <p>Si crees que esto es un error, puedes:</p>
+                    <ul class="list-disc list-inside space-y-1 ml-4">
+                        <li>Verificar la URL en la barra de direcciones</li>
+                        <li>Volver a la página anterior</li>
+                        <li>Ir al dashboard principal</li>
+                        <li>Contactar al administrador del sistema</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

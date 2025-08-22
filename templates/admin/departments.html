@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+
+{% block title %}Gestión de Departamentos - {{ config.APP_NAME }}{% endblock %}
+
+{% block content %}
+<div class="px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="md:flex md:items-center md:justify-between">
+            <div class="flex-1 min-w-0">
+                <h1 class="text-3xl font-bold leading-7 text-gray-900 dark:text-white sm:text-4xl sm:truncate gradient-text">
+                    <i class="fas fa-building mr-3 text-primary-500"></i>
+                    Gestión de Departamentos
+                </h1>
+                <p class="mt-2 text-lg text-gray-600 dark:text-gray-400">
+                    Administra los departamentos de la organización y sus recursos asociados.
+                </p>
+            </div>
+            <div class="mt-4 flex md:mt-0 md:ml-4">
+                <a href="{{ url_for('admin_new_department') }}" class="btn-primary shadow-glow">
+                    <i class="fas fa-plus mr-2"></i>
+                    Nuevo Departamento
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="mb-8">
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {% set total_departments = departments|length %}
+            {% set total_users_count = 0 %}
+            {% set total_passwords_count = 0 %}
+            {% for dept in departments %}
+                {% set total_users_count = total_users_count + dept.users|length %}
+                {% set total_passwords_count = total_passwords_count + dept.passwords|length %}
+            {% endfor %}
+            {% set avg_passwords_per_dept = (total_passwords_count / total_departments) if total_departments > 0 else 0 %}
+
+            <!-- Total Departments Card -->
+            <div class="card hover-lift animate-fade-in-up">
+                <div class="p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                                <i class="fas fa-building text-white text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
+                                    Total Departamentos
+                                </dt>
+                                <dd class="text-3xl font-bold text-gray-900 dark:text-white">
+                                    {{ total_departments }}
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Users Card -->
+            <div class="card hover-lift animate-fade-in-up" style="animation-delay: 0.1s;">
+                <div class="p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
+                                <i class="fas fa-users text-white text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
+                                    Total Usuarios
+                                </dt>
+                                <dd class="text-3xl font-bold text-gray-900 dark:text-white">
+                                    {{ total_users_count }}
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Passwords Card -->
+            <div class="card hover-lift animate-fade-in-up" style="animation-delay: 0.2s;">
+                <div class="p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                                <i class="fas fa-key text-white text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
+                                    Total Contraseñas
+                                </dt>
+                                <dd class="text-3xl font-bold text-gray-900 dark:text-white">
+                                    {{ total_passwords_count }}
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Average Passwords Card -->
+            <div class="card hover-lift animate-fade-in-up" style="animation-delay: 0.3s;">
+                <div class="p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
+                                <i class="fas fa-chart-bar text-white text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
+                                    Promedio por Depto
+                                </dt>
+                                <dd class="text-3xl font-bold text-gray-900 dark:text-white">
+                                    {{ "%.1f"|format(avg_passwords_per_dept) }}
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Departments List -->
+    <div class="animate-fade-in-up" style="animation-delay: 0.4s;">
+        {% if departments %}
+        <div class="card shadow-xl">
+            <div class="px-6 py-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-gray-700 dark:to-gray-600">
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white">
+                    <i class="fas fa-list mr-3 text-indigo-500"></i>
+                    Lista de Departamentos
+                </h3>
+                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                    Gestiona todos los departamentos de la organización
+                </p>
+            </div>
+
+            <div class="overflow-hidden">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead class="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600">
+                        <tr>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                                <i class="fas fa-building mr-2 text-primary-500"></i>Departamento
+                            </th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                                <i class="fas fa-users mr-2 text-indigo-500"></i>Usuarios
+                            </th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                                <i class="fas fa-key mr-2 text-blue-500"></i>Contraseñas
+                            </th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300">
+                                <i class="fas fa-calendar-plus mr-2 text-green-500"></i>Creado
+                            </th>
+                            <th scope="col" class="relative px-6 py-4">
+                                <span class="sr-only">Acciones</span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                        {% for department in departments %}
+                        <tr class="hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 dark:hover:from-gray-700 dark:hover:to-gray-600 transition-all duration-300 hover-lift">
+                            <td class="px-6 py-6">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-12 w-12">
+                                        <div class="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-lg">
+                                            <i class="fas fa-building text-white"></i>
+                                        </div>
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-lg font-semibold text-gray-900 dark:text-white">{{ department.name }}</div>
+                                        {% if department.description %}
+                                        <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ department.description }}</div>
+                                        {% else %}
+                                        <div class="text-sm text-gray-400 italic mt-1">Sin descripción</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-6">
+                                <div class="flex items-center">
+                                    <span class="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-green-100 to-emerald-200 text-green-800 dark:from-green-900 dark:to-emerald-800 dark:text-green-200 border border-green-300 dark:border-green-600 shadow-sm">
+                                        <i class="fas fa-users mr-2"></i>{{ department.users|length }} usuarios
+                                    </span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-6">
+                                <div class="flex items-center">
+                                    <span class="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 dark:from-blue-900 dark:to-blue-800 dark:text-blue-200 border border-blue-300 dark:border-blue-600 shadow-sm">
+                                        <i class="fas fa-key mr-2"></i>{{ department.passwords|length }} contraseñas
+                                    </span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-6 text-sm text-gray-500 dark:text-gray-400">
+                                <div class="flex items-center">
+                                    <i class="fas fa-calendar-alt mr-2 text-green-400"></i>
+                                    {{ department.created_at.strftime('%d/%m/%Y') }}
+                                </div>
+                            </td>
+                            <td class="px-6 py-6 text-right">
+                                <div class="flex items-center justify-end space-x-2">
+                                    <a href="{{ url_for('list_passwords', department_id=department.id) }}" class="p-2 text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-200 hover:bg-blue-50 dark:hover:bg-blue-900 rounded-lg transition-all duration-200" title="Ver contraseñas">
+                                        <i class="fas fa-key"></i>
+                                    </a>
+                                    <a href="{{ url_for('admin_users') }}?department={{ department.id }}" class="p-2 text-green-600 dark:text-green-400 hover:text-green-900 dark:hover:text-green-200 hover:bg-green-50 dark:hover:bg-green-900 rounded-lg transition-all duration-200" title="Ver usuarios">
+                                        <i class="fas fa-users"></i>
+                                    </a>
+                                    <a href="{{ url_for('admin_edit_department', id=department.id) }}" class="p-2 text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-200 hover:bg-indigo-50 dark:hover:bg-indigo-900 rounded-lg transition-all duration-200" title="Editar departamento">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% else %}
+        <!-- Empty State -->
+        <div class="card shadow-xl text-center py-16">
+            <div class="text-gray-500 dark:text-gray-400">
+                <div class="mx-auto h-24 w-24 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-600 dark:to-gray-700 rounded-full flex items-center justify-center mb-6">
+                    <i class="fas fa-building text-4xl text-gray-400 dark:text-gray-500"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">No hay departamentos</h3>
+                <p class="text-gray-600 dark:text-gray-400 mb-8 max-w-md mx-auto">
+                    Comienza creando el primer departamento para organizar mejor tu empresa.
+                </p>
+                <a href="{{ url_for('admin_new_department') }}" class="btn-primary shadow-glow">
+                    <i class="fas fa-plus mr-2"></i>
+                    Crear Primer Departamento
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
